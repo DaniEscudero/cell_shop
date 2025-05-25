@@ -66,6 +66,7 @@ export function ProductsTable() {
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [sortedProducts, setSortedProducts] = useState<Product[]>([]);
@@ -86,7 +87,7 @@ export function ProductsTable() {
 
   useEffect(() => {
     fetchProducts();
-  }, [editDialogOpen, addDialogOpen]);
+  }, [editDialogOpen, addDialogOpen, deleteDialogOpen]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -115,6 +116,7 @@ export function ProductsTable() {
   };
 
   const handleDeleteProduct = async (product: Product) => {
+    setDeleteDialogOpen(true);
     if (!product._id || !session?.user.token) {
       toast({
         title: 'Error al eliminar',
@@ -131,6 +133,7 @@ export function ProductsTable() {
     setTimeout(() => {
       console.log('Eliminando producto...');
     }, 2000);
+    setDeleteDialogOpen(false);
     await fetchProducts();
   };
 

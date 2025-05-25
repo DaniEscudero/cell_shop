@@ -10,6 +10,24 @@ export interface Product {
   numSales?: number;
 }
 
+export const availableTags = [
+  'Premium',
+  'Gama media',
+  'Económico',
+  'Nuevo',
+  'Oferta',
+  'Fotografía',
+  'Rendimiento',
+  'Batería',
+  'Diseño',
+  'Profesional',
+  'Gaming',
+  'Resistente',
+  'Destacados',
+  'Lanzamientos',
+  'Más Vendidos',
+];
+
 export const products: Product[] = [
   {
     _id: '1',

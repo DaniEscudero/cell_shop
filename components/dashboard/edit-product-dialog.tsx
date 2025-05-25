@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import type { Product } from '@/lib/interface-products';
+import { availableTags, type Product } from '@/lib/interface-products';
 import { signOut, useSession } from 'next-auth/react';
 import { toast } from '../ui/use-toast';
 import { updateProduct, uploadImage } from '@/lib/api/products';
@@ -47,24 +47,6 @@ const brands = [
   { label: 'Motorola', value: 'Motorola' },
   { label: 'Sony', value: 'Sony' },
   { label: 'Nothing', value: 'Nothing' },
-];
-
-const availableTags = [
-  'Premium',
-  'Gama media',
-  'Económico',
-  'Nuevo',
-  'Oferta',
-  'Fotografía',
-  'Rendimiento',
-  'Batería',
-  'Diseño',
-  'Profesional',
-  'Gaming',
-  'Resistente',
-  'Descatados',
-  'Lanzamientos',
-  'Mas Vendidos',
 ];
 
 export const EditProductDialog = ({

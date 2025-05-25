@@ -37,7 +37,7 @@ import { ImageUpload } from '@/components/ui/image-upload';
 import { useSession, signOut } from 'next-auth/react';
 import { createProduct, getProducts, uploadImage } from '@/lib/api/products';
 import { error } from 'console';
-import { Product } from '@/lib/interface-products';
+import { availableTags, Product } from '@/lib/interface-products';
 
 interface AddProductDialogProps {
   open: boolean;
@@ -54,21 +54,6 @@ const brands = [
   { label: 'Motorola', value: 'Motorola' },
   { label: 'Sony', value: 'Sony' },
   { label: 'Nothing', value: 'Nothing' },
-];
-
-const availableTags = [
-  'Premium',
-  'Gama media',
-  'Económico',
-  'Nuevo',
-  'Oferta',
-  'Fotografía',
-  'Rendimiento',
-  'Batería',
-  'Diseño',
-  'Profesional',
-  'Gaming',
-  'Resistente',
 ];
 
 export function AddProductDialog({
