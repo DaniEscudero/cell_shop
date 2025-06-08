@@ -21,11 +21,14 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CartItem } from '@/components/cart-item';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { showErrorListToast, useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/use-cart';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/use-auth';
 import { AuthGuard } from '@/components/auth-guard';
+import { createOrder } from '@/lib/api/orders';
+import { Order } from '@/lib/interface-orders';
+import { useSession } from 'next-auth/react';
 
 export default function CheckoutPage() {
   return (
@@ -39,10 +42,10 @@ function CheckoutContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { items, totalPrice, clearCart } = useCart();
-  const { user } = useAuth();
+  const { data: session } = useSession();
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: session?.user.name || '',
+    email: session?.user.email || '',
     street: '',
     city: '',
     postalCode: '',
@@ -114,11 +117,28 @@ function CheckoutContent() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validateForm()) {
-      // En un caso real, aquí enviaríamos los datos al servidor
+      const order: Order = {
+        customerName: formData.name,
+        date: new Date(),
+        status: 'processing',
+        products: items.map((item) => item.id),
+        total: totalPrice,
+      };
+
+      try {
+        const responseCreateOrder = await createOrder(
+          order,
+          session?.user.token || ''
+        );
+      } catch (err) {
+        showErrorListToast(err as string[]);
+        return;
+      }
+
       console.log('Pedido realizado:', {
         items,
         shippingInfo: formData,

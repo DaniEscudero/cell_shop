@@ -101,16 +101,16 @@ export function ProductsTable() {
     }
   };
 
+  const handleAddProduct = () => {
+    fetchProducts();
+  };
+
   const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setEditDialogOpen(true);
   };
 
-  const handleAddProduct = () => {
-    fetchProducts();
-  };
-
-  const handleEditExit = () => {
+  const handleEditedProduct = () => {
     fetchProducts();
     setSelectedProduct(null);
   };
@@ -258,7 +258,7 @@ export function ProductsTable() {
                         <Badge variant='outline'>En stock</Badge>
                       </TableCell>
                       <TableCell className='text-right'>
-                        <DropdownMenu>
+                        <DropdownMenu modal={false}>
                           <DropdownMenuTrigger asChild>
                             <Button variant='ghost' size='icon'>
                               <MoreHorizontal className='h-4 w-4' />
@@ -329,13 +329,12 @@ export function ProductsTable() {
           </div>
         </CardContent>
       </Card>
-
       {selectedProduct && (
         <EditProductDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           product={selectedProduct}
-          onExit={handleEditExit}
+          onProductEdited={handleEditedProduct}
         />
       )}
       <AddProductDialog

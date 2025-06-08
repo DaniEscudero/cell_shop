@@ -37,24 +37,13 @@ import { ImageUpload } from '@/components/ui/image-upload';
 import { useSession, signOut } from 'next-auth/react';
 import { createProduct, getProducts, uploadImage } from '@/lib/api/products';
 import { error } from 'console';
-import { availableTags, Product } from '@/lib/interface-products';
+import { availableTags, brands, Product } from '@/lib/interface-products';
 
 interface AddProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onProductAdded: () => void;
 }
-
-const brands = [
-  { label: 'Apple', value: 'Apple' },
-  { label: 'Samsung', value: 'Samsung' },
-  { label: 'Google', value: 'Google' },
-  { label: 'Xiaomi', value: 'Xiaomi' },
-  { label: 'OnePlus', value: 'OnePlus' },
-  { label: 'Motorola', value: 'Motorola' },
-  { label: 'Sony', value: 'Sony' },
-  { label: 'Nothing', value: 'Nothing' },
-];
 
 export function AddProductDialog({
   open,

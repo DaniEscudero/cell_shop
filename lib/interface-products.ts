@@ -10,6 +10,17 @@ export interface Product {
   numSales?: number;
 }
 
+export const brands = [
+  { label: 'Apple', value: 'Apple' },
+  { label: 'Samsung', value: 'Samsung' },
+  { label: 'Google', value: 'Google' },
+  { label: 'Xiaomi', value: 'Xiaomi' },
+  { label: 'OnePlus', value: 'OnePlus' },
+  { label: 'Motorola', value: 'Motorola' },
+  { label: 'Sony', value: 'Sony' },
+  { label: 'Nothing', value: 'Nothing' },
+];
+
 export const availableTags = [
   'Premium',
   'Gama media',

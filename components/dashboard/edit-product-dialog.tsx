@@ -3,15 +3,20 @@
 import type React from 'react';
 
 import { useState, useEffect } from 'react';
-import { X, Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ImageUpload } from '@/components/ui/image-upload';
 import {
   Command,
   CommandEmpty,
@@ -26,56 +31,33 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { availableTags, type Product } from '@/lib/interface-products';
-import { signOut, useSession } from 'next-auth/react';
+import { availableTags, brands, type Product } from '@/lib/interface-products';
+import { Badge } from '@/components/ui/badge';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from '../ui/use-toast';
+import { signOut, useSession } from 'next-auth/react';
 import { updateProduct, uploadImage } from '@/lib/api/products';
 
 interface EditProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
-  onExit: () => void;
+  onProductEdited: () => void;
 }
 
-const brands = [
-  { label: 'Apple', value: 'Apple' },
-  { label: 'Samsung', value: 'Samsung' },
-  { label: 'Google', value: 'Google' },
-  { label: 'Xiaomi', value: 'Xiaomi' },
-  { label: 'OnePlus', value: 'OnePlus' },
-  { label: 'Motorola', value: 'Motorola' },
-  { label: 'Sony', value: 'Sony' },
-  { label: 'Nothing', value: 'Nothing' },
-];
-
-export const EditProductDialog = ({
+export function EditProductDialog({
   open,
   onOpenChange,
   product,
-  onExit,
-}: EditProductDialogProps) => {
-  const { data: session, status } = useSession();
+  onProductEdited: onProductAdded,
+}: EditProductDialogProps) {
   const [formData, setFormData] = useState<Product>(product);
   const [openBrandCombobox, setOpenBrandCombobox] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: session } = useSession();
 
-  // Prevenir scroll del body cuando el modal está abierto
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [open]);
-
-  // Cargar datos del producto cuando se abre el modal
+  // Resetear el estado cuando cambia el producto o se abre/cierra el diálogo
   useEffect(() => {
     if (product && open) {
       setFormData(product);
@@ -100,18 +82,6 @@ export const EditProductDialog = ({
         ...formData,
         [name]: value,
       });
-    }
-  };
-
-  const handleImageChange = (value: string | File) => {
-    if (typeof value === 'string') {
-      setFormData({
-        ...formData,
-        image: value || '/placeholder.svg?height=300&width=300',
-      });
-      setImageFile(null);
-    } else {
-      setImageFile(value);
     }
   };
 
@@ -148,6 +118,28 @@ export const EditProductDialog = ({
     }
   };
 
+  const handleImageChange = (value: string | File) => {
+    if (typeof value === 'string') {
+      setFormData({
+        ...formData,
+        image: value || '/placeholder.svg?height=300&width=300',
+      });
+      setImageFile(null);
+    } else {
+      // Aquí solo guardamos el archivo para subirlo después a Firebase
+      setImageFile(value);
+      // La URL de la imagen se actualizará después de subirla a Firebase
+    }
+  };
+
+  const handleClose = () => {
+    setImageFile(null);
+    setTagInput('');
+    setOpenBrandCombobox(false);
+    onProductAdded();
+    onOpenChange(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -169,7 +161,6 @@ export const EditProductDialog = ({
         description: 'Por favor completa todos los campos requeridos.',
         variant: 'destructive',
       });
-      setIsSubmitting(false);
       console.log(formData, imageFile);
       return;
     }
@@ -181,7 +172,6 @@ export const EditProductDialog = ({
         description: 'Por favor el precio tiene que tener solo 2 decimales.',
         variant: 'destructive',
       });
-      setIsSubmitting(false);
       return;
     }
 
@@ -192,7 +182,6 @@ export const EditProductDialog = ({
           'Por favor el precio con descuento tiene que tener solo 2 decimales.',
         variant: 'destructive',
       });
-      setIsSubmitting(false);
       return;
     }
 
@@ -236,45 +225,23 @@ export const EditProductDialog = ({
       description: `El producto ${formData.name} ha sido añadido correctamente.`,
     });
 
-    onExit();
+    handleClose();
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onOpenChange(false);
-    }
-  };
-
-  //if (!open || !product) return null;
+  if (!product) return null;
 
   return (
-    <div
-      className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm'
-      onClick={handleBackdropClick}
-    >
-      <div className='bg-background border rounded-lg shadow-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative z-[10000]'>
-        {/* Header */}
-        <div className='flex items-center justify-between p-6 border-b'>
-          <div>
-            <h2 className='text-lg font-semibold'>Editar Producto</h2>
-            <p className='text-sm text-muted-foreground'>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Editar Producto</DialogTitle>
+            <DialogDescription>
               Modifica los detalles del producto. Haz clic en guardar cuando
               hayas terminado.
-            </p>
-          </div>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => onOpenChange(false)}
-            className='h-6 w-6'
-          >
-            <X className='h-4 w-4' />
-          </Button>
-        </div>
-
-        {/* Content */}
-        <form onSubmit={handleSubmit} className='p-6'>
-          <div className='grid gap-4'>
+            </DialogDescription>
+          </DialogHeader>
+          <div className='grid gap-4 py-4'>
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='id' className='text-right'>
                 ID
@@ -288,7 +255,6 @@ export const EditProductDialog = ({
                 disabled
               />
             </div>
-
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='name' className='text-right'>
                 Nombre
@@ -301,7 +267,6 @@ export const EditProductDialog = ({
                 className='col-span-3'
               />
             </div>
-
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='brand' className='text-right'>
                 Marca
@@ -360,7 +325,6 @@ export const EditProductDialog = ({
                 </Popover>
               </div>
             </div>
-
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='price' className='text-right'>
                 Precio ($)
@@ -375,7 +339,6 @@ export const EditProductDialog = ({
                 className='col-span-3'
               />
             </div>
-
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='discountPrice' className='text-right'>
                 Precio con descuento ($)
@@ -390,7 +353,6 @@ export const EditProductDialog = ({
                 className='col-span-3'
               />
             </div>
-
             <div className='grid grid-cols-4 items-start gap-4'>
               <Label className='text-right pt-2'>Imagen</Label>
               <div className='col-span-3'>
@@ -405,7 +367,6 @@ export const EditProductDialog = ({
                 </p>
               </div>
             </div>
-
             <div className='grid grid-cols-4 gap-4'>
               <Label htmlFor='description' className='text-right'>
                 Descripción
@@ -419,7 +380,6 @@ export const EditProductDialog = ({
                 rows={4}
               />
             </div>
-
             <div className='grid grid-cols-4 items-start gap-4'>
               <Label className='text-right pt-2'>Etiquetas</Label>
               <div className='col-span-3 space-y-4'>
@@ -479,23 +439,18 @@ export const EditProductDialog = ({
               </div>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className='flex justify-end gap-2 pt-6 border-t mt-6'>
+          <DialogFooter>
             <Button
               type='button'
               variant='outline'
-              onClick={() => {
-                onOpenChange(false);
-                onExit();
-              }}
+              onClick={() => onOpenChange(false)}
             >
               Cancelar
             </Button>
             <Button type='submit'>Guardar cambios</Button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-};
+}
