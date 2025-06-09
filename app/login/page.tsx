@@ -169,7 +169,6 @@ export default function LoginPage() {
               Regístrate
             </Link>
           </div>
-          <Button onClick={() => signOut()}> CERRAR </Button>
         </CardFooter>
       </Card>
     </div>
